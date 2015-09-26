@@ -355,10 +355,10 @@ SQL
     authenticated!
     query = <<SQL
 SELECT u.account_name, u.nick_name, f.created_at FROM
-(SELECT IF(one=?, another, one) friend_id, created_at FROM relations WHERE one = ? OR another = ? ORDER BY created_at DESC) f
+(SELECT another friend_id, created_at FROM relations WHERE one = ? ORDER BY created_at DESC) f
 JOIN users u ON f.friend_id = u.id;
 SQL
-    friends = db.xquery(query, current_user[:id], current_user[:id], current_user[:id])
+    friends = db.xquery(query, current_user[:id])
     erb :friends, locals: { friends: friends }
   end
 

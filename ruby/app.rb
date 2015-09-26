@@ -353,14 +353,13 @@ SQL
 
   get '/friends' do
     authenticated!
-    query = 'SELECT * FROM relations WHERE one = ? OR another = ? ORDER BY created_at DESC'
-    friends = {}
-    db.xquery(query, current_user[:id], current_user[:id]).each do |rel|
-      key = (rel[:one] == current_user[:id] ? :another : :one)
-      friends[rel[key]] ||= rel[:created_at]
-    end
-    list = friends.map{|user_id, created_at| [user_id, created_at]}
-    erb :friends, locals: { friends: list }
+    query = <<SQL
+SELECT u.account_name, u.nick_name, f.created_at FROM
+(SELECT IF(one=?, another, one) friend_id, created_at FROM relations WHERE one = ? OR another = ? ORDER BY created_at DESC) f
+JOIN users u ON f.friend_id = u.id;
+SQL
+    friends = db.xquery(query, current_user[:id], current_user[:id], current_user[:id])
+    erb :friends, locals: { friends: friends }
   end
 
   post '/friends/:account_name' do

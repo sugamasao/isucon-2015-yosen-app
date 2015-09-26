@@ -26,7 +26,11 @@ class Isucon5::WebApp < Sinatra::Base
   #set :renderd_html, {}
 
   configure :production do
-    set :login_fail, File.read(File.join(File.expand_path('static', __dir__), 'login_fail.html'))
+    path = File.expand_path('static', __dir__)
+    set :render_401, File.read(File.join(path, '401.html'))
+    set :render_403, File.read(File.join(path, '403.html'))
+    set :render_404, File.read(File.join(path, '404.html'))
+    set :render_login, File.read(File.join(path, 'login.html'))
     #@renderd_html = {}
     #static = File.expand_path('static', __dir__)
     #@renderd_html[:login_fail] = File.read(File.join(static, 'login_fail.html'))
@@ -144,22 +148,21 @@ SQL
 
   error Isucon5::AuthenticationError do
     session[:user_id] = nil
-    #halt 401, erubis(:login, layout: false, locals: { message: 'ログインに失敗しました' })
-    #halt 401, File.read(File.join(File.expand_path('static', __dir__), 'login_fail.html'))
-    halt 401, settings.login_fail#File.read(File.join(File.expand_path('static', __dir__), 'login_fail.html'))
+    halt 401, settings.render_401
   end
 
   error Isucon5::PermissionDenied do
-    halt 403, erubis(:error, locals: { message: '友人のみしかアクセスできません' })
+    halt 403, settings.render_403
   end
 
   error Isucon5::ContentNotFound do
-    halt 404, erubis(:error, locals: { message: '要求されたコンテンツは存在しません' })
+    halt 404, settings.render_404
   end
 
   get '/login' do
     session.clear
-    erb :login, layout: false, locals: { message: '高負荷に耐えられるSNSコミュニティサイトへようこそ!' }
+    #erb :login, layout: false, locals: { message: '高負荷に耐えられるSNSコミュニティサイトへようこそ!' }
+    settings.render_login
   end
 
   post '/login' do

@@ -39,7 +39,7 @@ class Isucon5::WebApp < Sinatra::Base
     #static = File.expand_path('static', __dir__)
     #@renderd_html[:login_fail] = File.read(File.join(static, 'login_fail.html'))
 
-    set :dc, Dalli::Client.new('localhost:11211', { :namespace => "isucon5q", :compress => true })
+    set :dc, Dalli::Client.new('/tmp/memcached.sock', { :namespace => "isucon5q", :compress => true })
   end
 
   helpers do

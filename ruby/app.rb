@@ -218,9 +218,9 @@ SQL
     settings.logger.info '/: entries_of_friends end'
 
     comments_of_friends = []
-    db.query('SELECT SQL_CACHE * FROM comments ORDER BY created_at DESC LIMIT 500').each do |comment|
+    db.query('SELECT SQL_CACHE user_id, entry_id, comment, created_at FROM comments ORDER BY created_at DESC LIMIT 500').each do |comment|
       next unless is_friend?(comment[:user_id])
-      entry = db.xquery('SELECT * FROM entries WHERE id = ?', comment[:entry_id]).first
+      entry = db.xquery('SELECT private, user_id FROM entries WHERE id = ?', comment[:entry_id]).first
       entry[:is_private] = (entry[:private] == 1)
       next if entry[:is_private] && !permitted?(entry[:user_id])
       comments_of_friends << comment

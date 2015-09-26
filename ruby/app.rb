@@ -388,6 +388,14 @@ SQL
         raise Isucon5::ContentNotFound
       end
       db.xquery('INSERT INTO relations (one, another) VALUES (?,?), (?,?)', current_user[:id], user[:id], user[:id], current_user[:id])
+
+      # 友達との関連をmemcachedに持たせる
+      my_cache = settings.dc.get(current_user[:id])
+      friend_cache = settings.dc.get(user[:id])
+
+      settings.dc.set(current_user[:id], my_cache + ',' + user[:id])
+      settings.dc.set(user[:id], friend_cache + ',' + current_user[:id])
+
       redirect '/friends'
     end
   end

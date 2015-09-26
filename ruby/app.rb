@@ -120,10 +120,12 @@ SQL
     end
 
     def is_friend?(another_id)
+      # query = 'SELECT COUNT(1) AS cnt FROM relations WHERE one = ? AND another = ?'
+      # cnt = db.xquery(query, user_id, another_id).first[:cnt]
+      # cnt.to_i > 0 ? true : false
+
       user_id = session[:user_id]
-      query = 'SELECT COUNT(1) AS cnt FROM relations WHERE one = ? AND another = ?'
-      cnt = db.xquery(query, user_id, another_id).first[:cnt]
-      cnt.to_i > 0 ? true : false
+      !settings.dc.get(user_id.to_s).split(',').index(another_id.to_s).nil?
     end
 
     def is_friend_account?(account_name)
@@ -388,6 +390,14 @@ SQL
         raise Isucon5::ContentNotFound
       end
       db.xquery('INSERT INTO relations (one, another) VALUES (?,?), (?,?)', current_user[:id], user[:id], user[:id], current_user[:id])
+
+      # 友達との関連をmemcachedに持たせる
+      my_cache = settings.dc.get(current_user[:id])
+      friend_cache = settings.dc.get(user[:id])
+
+      settings.dc.set(current_user[:id], my_cache + ",#{user[:id]}")
+      settings.dc.set(user[:id], friend_cache + ",#{current_user[:id]}")
+
       redirect '/friends'
     end
   end
@@ -398,8 +408,10 @@ SQL
     db.query("DELETE FROM entries WHERE id > 500000")
     db.query("DELETE FROM comments WHERE id > 1500000")
 
-    # FIXME あとで消す
-    settings.dc.set('test', 'isucon5q')
+    # 友達のIDを初期化時にmemcachedに叩き込む
+    db.query('SELECT one me, GROUP_CONCAT(another) friend_ids FROM relations GROUP BY one;').each do |friendship|
+      settings.dc.set(friendship[:me], friendship[:friend_ids])
+    end
 
     status 200
     body ''

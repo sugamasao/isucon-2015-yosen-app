@@ -201,7 +201,7 @@ SQL
     end
 
     comments_of_friends = []
-    db.query('SELECT * FROM (SELECT * FROM comments ORDER BY created_at DESC LIMIT 1000) comments, entries WHERE entries.id = comments.entry_id ORDER BY comments.created_at').each do |comment|
+    db.query('SELECT * FROM (SELECT * FROM comments ORDER BY created_at DESC LIMIT 1200) cm, entries WHERE entries.id = cm.entry_id ORDER BY cm.created_at DESC LIMIT 1000').each do |comment|
       next unless is_friend?(comment[:user_id])
       comment[:is_private] = (comment[:private] == 1)
       next if comment[:is_private] && !permitted?(comment[:user_id])

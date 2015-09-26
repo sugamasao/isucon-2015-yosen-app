@@ -23,11 +23,13 @@ class Isucon5::WebApp < Sinatra::Base
   #set :sessions, true
   set :session_secret, ENV['ISUCON5_SESSION_SECRET'] || 'beermoris'
   set :protection, true
+  #set :renderd_html, {}
 
-  configure :production, :development do
-    @renderd_html = {}
-    static = File.expand_path('static', __dir__)
-    @renderd_html[:login_fail] = File.read(File.join(static, 'login_fail.html'))
+  configure :production do
+    set :login_fail, File.read(File.join(File.expand_path('static', __dir__), 'login_fail.html'))
+    #@renderd_html = {}
+    #static = File.expand_path('static', __dir__)
+    #@renderd_html[:login_fail] = File.read(File.join(static, 'login_fail.html'))
   end
 
   helpers do
@@ -141,7 +143,8 @@ SQL
   error Isucon5::AuthenticationError do
     session[:user_id] = nil
     #halt 401, erubis(:login, layout: false, locals: { message: 'ログインに失敗しました' })
-    halt 401, @renderd_html[:login_fail]
+    #halt 401, File.read(File.join(File.expand_path('static', __dir__), 'login_fail.html'))
+    halt 401, settings.login_fail#File.read(File.join(File.expand_path('static', __dir__), 'login_fail.html'))
   end
 
   error Isucon5::PermissionDenied do

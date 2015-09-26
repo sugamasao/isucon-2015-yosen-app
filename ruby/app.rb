@@ -118,8 +118,8 @@ SQL
 
     def is_friend?(another_id)
       user_id = session[:user_id]
-      query = 'SELECT COUNT(1) AS cnt FROM relations WHERE (one = ? AND another = ?) OR (one = ? AND another = ?)'
-      cnt = db.xquery(query, user_id, another_id, another_id, user_id).first[:cnt]
+      query = 'SELECT COUNT(1) AS cnt FROM relations WHERE one = ? AND another = ?'
+      cnt = db.xquery(query, user_id, another_id).first[:cnt]
       cnt.to_i > 0 ? true : false
     end
 
@@ -200,7 +200,7 @@ SQL
     comments_for_me = db.xquery(comments_for_me_query, current_user[:id])
 
     entries_of_friends = []
-    db.query('SELECT * FROM entries ORDER BY created_at DESC LIMIT 1000').each do |entry|
+    db.query('SELECT SQL_CACHE * FROM entries, users WHERE users.id = entries.user_id ORDER BY created_at DESC LIMIT 100').each do |entry|
       next unless is_friend?(entry[:user_id])
       entry[:title] = entry[:body].split(/\n/).first
       entries_of_friends << entry

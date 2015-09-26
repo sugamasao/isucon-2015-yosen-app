@@ -209,7 +209,7 @@ SQL
     settings.logger.info '/: comments_for_me end'
 
     entries_of_friends = []
-    db.query('SELECT SQL_CACHE * FROM entries ORDER BY created_at DESC LIMIT 1000').each do |entry|
+    db.query('SELECT SQL_CACHE * FROM entries ORDER BY created_at DESC LIMIT 500').each do |entry|
           next unless is_friend?(entry[:user_id])
           entry[:title] = entry[:body].split(/\n/).first
           entries_of_friends << entry
@@ -218,7 +218,7 @@ SQL
     settings.logger.info '/: entries_of_friends end'
 
     comments_of_friends = []
-    db.query('SELECT SQL_CACHE * FROM comments ORDER BY created_at DESC LIMIT 1000').each do |comment|
+    db.query('SELECT SQL_CACHE * FROM comments ORDER BY created_at DESC LIMIT 500').each do |comment|
       next unless is_friend?(comment[:user_id])
       entry = db.xquery('SELECT * FROM entries WHERE id = ?', comment[:entry_id]).first
       entry[:is_private] = (entry[:private] == 1)

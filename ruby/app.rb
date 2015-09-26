@@ -204,7 +204,7 @@ SQL
     end
 
     comments_of_friends = []
-    db.query('SELECT * FROM (SELECT * FROM comments ORDER BY created_at DESC LIMIT 1200) cm, entries WHERE entries.id = cm.entry_id ORDER BY cm.created_at DESC LIMIT 1000').each do |comment|
+    db.query('SELECT SQL_CACHE comments.*, entries.* FROM (SELECT entry_id FROM comments ORDER BY created_at DESC LIMIT 1200) cm, comments, entries WHERE entries.id = cm.entry_id AND entries.id = comments.entry_id ORDER BY comments.created_at DESC').each do |comment|
       next unless is_friend?(comment[:user_id])
       comment[:is_private] = (comment[:private] == 1)
       next if comment[:is_private] && !permitted?(comment[:user_id])
@@ -212,7 +212,7 @@ SQL
       break if comments_of_friends.size >= 10
     end
 
-    friends_query = 'SELECT * FROM relations WHERE one = ? OR another = ? ORDER BY created_at DESC'
+    friends_query = 'SELECT one, another, created_at FROM relations WHERE one = ? OR another = ? ORDER BY created_at DESC'
     friends_map = {}
     db.xquery(friends_query, current_user[:id], current_user[:id]).each do |rel|
       key = (rel[:one] == current_user[:id] ? :another : :one)
@@ -299,7 +299,7 @@ SQL
 
   get '/diary/entry/:entry_id' do
     authenticated!
-    entry = db.xquery('SELECT * FROM entries WHERE id = ?', params['entry_id']).first
+    entry = db.xquery('SELECT * FROM entries WHERE entries.id = ?', params['entry_id']).first
     raise Isucon5::ContentNotFound unless entry
     entry[:title], entry[:content] = entry[:body].split(/\n/, 2)
     entry[:is_private] = (entry[:private] == 1)
@@ -307,7 +307,7 @@ SQL
     if entry[:is_private] && !permitted?(owner[:id])
       raise Isucon5::PermissionDenied
     end
-    comments = db.xquery('SELECT * FROM comments WHERE entry_id = ?', entry[:id])
+    comments = db.xquery('SELECT * FROM comments, users WHERE comments.entry_id = ? AND users.id = comments.user_id', entry[:id])
     mark_footprint(owner[:id])
     erb :entry, locals: { owner: owner, entry: entry, comments: comments }
   end

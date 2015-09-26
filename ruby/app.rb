@@ -178,12 +178,15 @@ SQL
 
   get '/' do
     authenticated!
+    settings.logger.info '/: START'
 
     profile = db.xquery('SELECT * FROM profiles WHERE user_id = ?', current_user[:id]).first
+    settings.logger.info '/: profile end'
 
     entries_query = 'SELECT * FROM entries WHERE user_id = ? ORDER BY created_at LIMIT 5'
     entries = db.xquery(entries_query, current_user[:id])
       .map{ |entry| entry[:is_private] = (entry[:private] == 1); entry[:title], entry[:content] = entry[:body].split(/\n/, 2); entry }
+    settings.logger.info '/: entries_query end'
 
     comments_for_me_query = <<SQL
 SELECT c.id AS id, c.entry_id AS entry_id, c.user_id AS user_id, c.comment AS comment, c.created_at AS created_at
@@ -194,6 +197,7 @@ ORDER BY c.created_at DESC
 LIMIT 10
 SQL
     comments_for_me = db.xquery(comments_for_me_query, current_user[:id])
+    settings.logger.info '/: comments_for_me end'
 
     entries_of_friends = []
     db.query('SELECT SQL_CACHE * FROM entries, users WHERE users.id = entries.user_id ORDER BY created_at DESC LIMIT 100').each do |entry|
@@ -202,6 +206,7 @@ SQL
       entries_of_friends << entry
       break if entries_of_friends.size >= 10
     end
+    settings.logger.info '/: entries_of_friends end'
 
     comments_of_friends = []
     db.query('SELECT SQL_CACHE comments.*, entries.* FROM (SELECT entry_id FROM comments ORDER BY created_at DESC LIMIT 1200) cm, comments, entries WHERE entries.id = cm.entry_id AND entries.id = comments.entry_id ORDER BY comments.created_at DESC').each do |comment|
@@ -211,6 +216,7 @@ SQL
       comments_of_friends << comment
       break if comments_of_friends.size >= 10
     end
+    settings.logger.info '/: comments_of_friends end'
 
     friends_query = 'SELECT one, another, created_at FROM relations WHERE one = ? OR another = ? ORDER BY created_at DESC'
     friends_map = {}
@@ -219,6 +225,7 @@ SQL
       friends_map[rel[key]] ||= rel[:created_at]
     end
     friends = friends_map.map{|user_id, created_at| [user_id, created_at]}
+    settings.logger.info '/: friends_map end'
 
     query = <<SQL
 SELECT user_id, owner_id, DATE(created_at) AS date, MAX(created_at) AS updated
@@ -229,6 +236,7 @@ ORDER BY updated DESC
 LIMIT 10
 SQL
     footprints = db.xquery(query, current_user[:id])
+    settings.logger.info '/: footprints end'
 
     locals = {
       profile: profile || {},
@@ -239,6 +247,9 @@ SQL
       friends: friends,
       footprints: footprints
     }
+
+    settings.logger.info '/: END'
+
     erb :index, locals: locals
   end
 

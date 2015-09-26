@@ -3,7 +3,7 @@ require 'mysql2'
 require 'mysql2-cs-bind'
 require 'tilt/erubis'
 require 'erubis'
-require 'logger'
+#require 'logger'
 require 'dalli'
 
 module Isucon5
@@ -26,10 +26,10 @@ class Isucon5::WebApp < Sinatra::Base
   set :session_secret, ENV['ISUCON5_SESSION_SECRET'] || 'beermoris'
   set :protection, true
   #set :renderd_html, {}
-  set :logger, Logger.new(File.expand_path('log/logger.log', __dir__))
+#  set :logger, Logger.new(File.expand_path('log/logger.log', __dir__))
 
   configure :production do
-    settings.logger.info 'configure:production called.'
+#    settings.logger.info 'configure:production called.'
     path = File.expand_path('static', __dir__)
     set :render_401, File.read(File.join(path, '401.html'))
     set :render_403, File.read(File.join(path, '403.html'))
@@ -185,15 +185,15 @@ SQL
 
   get '/' do
     authenticated!
-    settings.logger.info '/: START'
+#    settings.logger.info '/: START'
 
     profile = db.xquery('SELECT * FROM profiles WHERE user_id = ?', current_user[:id]).first
-    settings.logger.info '/: profile end'
+#    settings.logger.info '/: profile end'
 
     entries_query = 'SELECT * FROM entries WHERE user_id = ? ORDER BY created_at LIMIT 5'
     entries = db.xquery(entries_query, current_user[:id])
       .map{ |entry| entry[:is_private] = (entry[:private] == 1); entry[:title], entry[:content] = entry[:body].split(/\n/, 2); entry }
-    settings.logger.info '/: entries_query end'
+#    settings.logger.info '/: entries_query end'
 
     comments_for_me_query = <<SQL
 SELECT c.id AS id, c.entry_id AS entry_id, c.user_id AS user_id, c.comment AS comment, c.created_at AS created_at, u.account_name AS user_account_name, u.nick_name AS user_nick_name
@@ -205,7 +205,7 @@ ORDER BY c.created_at DESC
 LIMIT 10
 SQL
     comments_for_me = db.xquery(comments_for_me_query, current_user[:id])
-    settings.logger.info '/: comments_for_me end'
+#    settings.logger.info '/: comments_for_me end'
 
     entries_of_friends = []
     db.query('SELECT SQL_CACHE id, user_id, body, created_at FROM entries ORDER BY created_at DESC LIMIT 500').each do |entry|
@@ -214,7 +214,7 @@ SQL
           entries_of_friends << entry
           break if entries_of_friends.size >= 10
     end
-    settings.logger.info '/: entries_of_friends end'
+#    settings.logger.info '/: entries_of_friends end'
 
     comments_of_friends = []
     db.query('SELECT SQL_CACHE user_id, entry_id, comment, created_at FROM comments ORDER BY created_at DESC LIMIT 500').each do |comment|
@@ -225,7 +225,7 @@ SQL
       comments_of_friends << comment
       break if comments_of_friends.size >= 10
     end
-    settings.logger.info '/: comments_of_friends end'
+#    settings.logger.info '/: comments_of_friends end'
 
     friends_query = 'SELECT one, another, created_at FROM relations WHERE one = ? OR another = ? ORDER BY created_at DESC'
     friends_map = {}
@@ -234,7 +234,7 @@ SQL
       friends_map[rel[key]] ||= rel[:created_at]
     end
     friends = friends_map.map{|user_id, created_at| [user_id, created_at]}
-    settings.logger.info '/: friends_map end'
+#    settings.logger.info '/: friends_map end'
 
     query = <<SQL
 SELECT user_id, owner_id, DATE(created_at) AS date, MAX(created_at) AS updated
@@ -245,7 +245,7 @@ ORDER BY updated DESC
 LIMIT 10
 SQL
     footprints = db.xquery(query, current_user[:id])
-    settings.logger.info '/: footprints end'
+#    settings.logger.info '/: footprints end'
 
     locals = {
       profile: profile || {},
@@ -257,7 +257,7 @@ SQL
       footprints: footprints
     }
 
-    settings.logger.info '/: END'
+#    settings.logger.info '/: END'
 
     erb :index, locals: locals
   end

@@ -8,5 +8,3 @@ gem "erubis"
 gem "unicorn"
 gem "dalli"
 
-gem 'rack-lineprof'
-

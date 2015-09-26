@@ -204,7 +204,7 @@ SQL
     settings.logger.info '/: comments_for_me end'
 
     entries_of_friends = []
-    db.query('SELECT SQL_CACHE * FROM entries, users WHERE users.id = entries.user_id ORDER BY created_at DESC LIMIT 100').each do |entry|
+    db.query('SELECT SQL_CACHE * FROM entries, users WHERE users.id = entries.user_id ORDER BY created_at DESC LIMIT 20').each do |entry|
       next unless is_friend?(entry[:user_id])
       entry[:title] = entry[:body].split(/\n/).first
       entries_of_friends << entry

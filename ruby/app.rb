@@ -120,10 +120,12 @@ SQL
     end
 
     def is_friend?(another_id)
+      # query = 'SELECT COUNT(1) AS cnt FROM relations WHERE one = ? AND another = ?'
+      # cnt = db.xquery(query, user_id, another_id).first[:cnt]
+      # cnt.to_i > 0 ? true : false
+
       user_id = session[:user_id]
-      query = 'SELECT COUNT(1) AS cnt FROM relations WHERE one = ? AND another = ?'
-      cnt = db.xquery(query, user_id, another_id).first[:cnt]
-      cnt.to_i > 0 ? true : false
+      !settings.dc.get(user_id.to_s).split(',').index(another_id.to_s).nil?
     end
 
     def is_friend_account?(account_name)
@@ -393,8 +395,8 @@ SQL
       my_cache = settings.dc.get(current_user[:id])
       friend_cache = settings.dc.get(user[:id])
 
-      settings.dc.set(current_user[:id], my_cache + ',' + user[:id])
-      settings.dc.set(user[:id], friend_cache + ',' + current_user[:id])
+      settings.dc.set(current_user[:id], my_cache + "#{user[:id]}")
+      settings.dc.set(user[:id], friend_cache + "#{current_user[:id]}")
 
       redirect '/friends'
     end

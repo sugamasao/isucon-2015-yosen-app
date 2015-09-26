@@ -299,7 +299,7 @@ SQL
 
   get '/diary/entry/:entry_id' do
     authenticated!
-    entry = db.xquery('SELECT * FROM entries WHERE id = ?', params['entry_id']).first
+    entry = db.xquery('SELECT * FROM entries WHERE entries.id = ?', params['entry_id']).first
     raise Isucon5::ContentNotFound unless entry
     entry[:title], entry[:content] = entry[:body].split(/\n/, 2)
     entry[:is_private] = (entry[:private] == 1)
@@ -307,7 +307,7 @@ SQL
     if entry[:is_private] && !permitted?(owner[:id])
       raise Isucon5::PermissionDenied
     end
-    comments = db.xquery('SELECT * FROM comments WHERE entry_id = ?', entry[:id])
+    comments = db.xquery('SELECT * FROM comments, users WHERE comments.entry_id = ? AND users.id = comments.user_id', entry[:id])
     mark_footprint(owner[:id])
     erb :entry, locals: { owner: owner, entry: entry, comments: comments }
   end

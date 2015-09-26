@@ -209,7 +209,7 @@ SQL
       break if comments_of_friends.size >= 10
     end
 
-    friends_query = 'SELECT * FROM relations WHERE one = ? OR another = ? ORDER BY created_at DESC'
+    friends_query = 'SELECT one, another, created_at FROM relations WHERE one = ? OR another = ? ORDER BY created_at DESC'
     friends_map = {}
     db.xquery(friends_query, current_user[:id], current_user[:id]).each do |rel|
       key = (rel[:one] == current_user[:id] ? :another : :one)

@@ -398,8 +398,10 @@ SQL
     db.query("DELETE FROM entries WHERE id > 500000")
     db.query("DELETE FROM comments WHERE id > 1500000")
 
-    # FIXME あとで消す
-    settings.dc.set('test', 'isucon5q')
+    # 友達のIDを初期化時にmemcachedに叩き込む
+    db.query('SELECT one me, GROUP_CONCAT(another) friend_ids FROM relations GROUP BY one;').each do |friendship|
+      settings.dc.set(friendship[:me], friendship[:friend_ids])
+    end
 
     status 200
     body ''

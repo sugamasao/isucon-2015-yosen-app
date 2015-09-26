@@ -400,5 +400,8 @@ SQL
 
     # FIXME あとで消す
     settings.dc.set('test', 'isucon5q')
+
+    status 200
+    body ''
   end
 end

@@ -24,6 +24,12 @@ class Isucon5::WebApp < Sinatra::Base
   set :session_secret, ENV['ISUCON5_SESSION_SECRET'] || 'beermoris'
   set :protection, true
 
+  configure :production, :development do
+    @renderd_html = {}
+    static = File.expand_path('static', __dir__)
+    @renderd_html[:login_fail] = File.read(File.join(static, 'login_fail.html'))
+  end
+
   helpers do
     def config
       @config ||= {
@@ -134,7 +140,8 @@ SQL
 
   error Isucon5::AuthenticationError do
     session[:user_id] = nil
-    halt 401, erubis(:login, layout: false, locals: { message: 'ログインに失敗しました' })
+    #halt 401, erubis(:login, layout: false, locals: { message: 'ログインに失敗しました' })
+    halt 401, @renderd_html[:login_fail]
   end
 
   error Isucon5::PermissionDenied do

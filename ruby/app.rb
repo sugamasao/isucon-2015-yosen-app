@@ -204,19 +204,20 @@ SQL
     settings.logger.info '/: comments_for_me end'
 
     entries_of_friends = []
-    db.query('SELECT SQL_CACHE * FROM entries, users WHERE users.id = entries.user_id ORDER BY created_at DESC LIMIT 20').each do |entry|
-      next unless is_friend?(entry[:user_id])
-      entry[:title] = entry[:body].split(/\n/).first
-      entries_of_friends << entry
-      break if entries_of_friends.size >= 10
+    db.query('SELECT * FROM entries ORDER BY created_at DESC LIMIT 1000').each do |entry|
+          next unless is_friend?(entry[:user_id])
+          entry[:title] = entry[:body].split(/\n/).first
+          entries_of_friends << entry
+          break if entries_of_friends.size >= 10
     end
     settings.logger.info '/: entries_of_friends end'
 
     comments_of_friends = []
-    db.query('SELECT SQL_CACHE comments.*, entries.* FROM (SELECT entry_id FROM comments ORDER BY created_at DESC LIMIT 1200) cm, comments, entries WHERE entries.id = cm.entry_id AND entries.id = comments.entry_id ORDER BY comments.created_at DESC').each do |comment|
+    db.query('SELECT * FROM comments ORDER BY created_at DESC LIMIT 1000').each do |comment|
       next unless is_friend?(comment[:user_id])
-      comment[:is_private] = (comment[:private] == 1)
-      next if comment[:is_private] && !permitted?(comment[:user_id])
+      entry = db.xquery('SELECT * FROM entries WHERE id = ?', comment[:entry_id]).first
+      entry[:is_private] = (entry[:private] == 1)
+      next if entry[:is_private] && !permitted?(entry[:user_id])
       comments_of_friends << comment
       break if comments_of_friends.size >= 10
     end

@@ -4,6 +4,7 @@ require 'mysql2-cs-bind'
 require 'tilt/erubis'
 require 'erubis'
 require 'logger'
+require 'dalli'
 
 module Isucon5
   class AuthenticationError < StandardError; end
@@ -37,6 +38,8 @@ class Isucon5::WebApp < Sinatra::Base
     #@renderd_html = {}
     #static = File.expand_path('static', __dir__)
     #@renderd_html[:login_fail] = File.read(File.join(static, 'login_fail.html'))
+
+    set :dc, Dalli::Client.new('localhost:11211', { :namespace => "isucon5q", :compress => true })
   end
 
   helpers do
@@ -394,5 +397,8 @@ SQL
     db.query("DELETE FROM footprints WHERE id > 500000")
     db.query("DELETE FROM entries WHERE id > 500000")
     db.query("DELETE FROM comments WHERE id > 1500000")
+
+    # FIXME あとで消す
+    settings.dc.set('test', 'isucon5q')
   end
 end

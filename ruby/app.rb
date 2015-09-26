@@ -30,6 +30,7 @@ class Isucon5::WebApp < Sinatra::Base
     set :render_401, File.read(File.join(path, '401.html'))
     set :render_403, File.read(File.join(path, '403.html'))
     set :render_404, File.read(File.join(path, '404.html'))
+    set :render_login, File.read(File.join(path, 'login.html'))
     #@renderd_html = {}
     #static = File.expand_path('static', __dir__)
     #@renderd_html[:login_fail] = File.read(File.join(static, 'login_fail.html'))
@@ -160,7 +161,8 @@ SQL
 
   get '/login' do
     session.clear
-    erb :login, layout: false, locals: { message: '高負荷に耐えられるSNSコミュニティサイトへようこそ!' }
+    #erb :login, layout: false, locals: { message: '高負荷に耐えられるSNSコミュニティサイトへようこそ!' }
+    settings.render_login
   end
 
   post '/login' do

@@ -36,7 +36,8 @@ class Isucon5::WebApp < Sinatra::Base
     def config
       @config ||= {
         db: {
-          host: ENV['ISUCON5_DB_HOST'] || 'localhost',
+          # host: ENV['ISUCON5_DB_HOST'] || 'localhost',
+          socket: '/var/run/mysqld/mysqld.sock',
           port: ENV['ISUCON5_DB_PORT'] && ENV['ISUCON5_DB_PORT'].to_i,
           username: ENV['ISUCON5_DB_USER'] || 'root',
           password: ENV['ISUCON5_DB_PASSWORD'],

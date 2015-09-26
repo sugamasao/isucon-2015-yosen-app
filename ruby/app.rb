@@ -28,7 +28,7 @@ class Isucon5::WebApp < Sinatra::Base
   set :logger, Logger.new(File.expand_path('log/logger.log', __dir__))
 
   configure :production do
-    configure.logger.info 'configure:production called.'
+    settings.logger.info 'configure:production called.'
     path = File.expand_path('static', __dir__)
     set :render_401, File.read(File.join(path, '401.html'))
     set :render_403, File.read(File.join(path, '403.html'))

@@ -338,12 +338,13 @@ SQL
   get '/footprints' do
     authenticated!
     query = <<SQL
-SELECT user_id, owner_id, DATE(created_at) AS date, MAX(created_at) as updated
-FROM footprints
-WHERE user_id = ?
-GROUP BY user_id, owner_id, DATE(created_at)
+SELECT fp.user_id, fp.owner_id, DATE(fp.created_at) AS date, MAX(fp.created_at) as updated, u.account_name, u.nick_name
+FROM footprints fp
+JOIN users u ON fp.owner_id = u.id
+WHERE fp.user_id = ?
+GROUP BY fp.user_id, fp.owner_id, DATE(fp.created_at)
 ORDER BY updated DESC
-LIMIT 50
+LIMIT 50;
 SQL
     footprints = db.xquery(query, current_user[:id])
     erb :footprints, locals: { footprints: footprints }

@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS relations (
   `one` int NOT NULL,
   `another` int NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY `friendship` (`one`,`another`)
+  UNIQUE KEY `friendship` (`one`,`another`),
+  KEY `idx_footprints_1` (`user_id`,`owner_id`)
 ) DEFAULT CHARSET=utf8;
 
 -- DROP TABLE IF EXISTS profiles;
@@ -61,4 +62,6 @@ CREATE TABLE IF NOT EXISTS footprints (
   `user_id` int NOT NULL,
   `owner_id` int NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  KEY `user_id` (`user_id`,`created_at`),
+  KEY `idx_footprints_1` (`user_id`, `owner_id`)
 ) DEFAULT CHARSET=utf8;
